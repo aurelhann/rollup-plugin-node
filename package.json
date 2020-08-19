@@ -1,0 +1,27 @@
+{
+  "name": "rollup-plugin-node",
+  "version": "0.0.1",
+  "description": "A plugin rollup for node uage and other little stuff that make rollup great",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aurelhann/rollup-plugin-node.git"
+  },
+  "keywords": [
+    "rollup",
+    "nodejs"
+  ],
+  "author": "aurelhann",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aurelhann/rollup-plugin-node/issues"
+  },
+  "homepage": "https://github.com/aurelhann/rollup-plugin-node#readme",
+  "dependencies": {
+    "@rollup/pluginutils": "^4.0.0",
+    "magic-string": "^0.25.7"
+  }
+}
