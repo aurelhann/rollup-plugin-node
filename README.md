@@ -27,7 +27,7 @@ npm install rollup-plugin-node --save-dev
 Create a `rollup.config.js` [configuration file](https://www.rollupjs.org/guide/en/#configuration-files) and import the plugin:
 
 ```js
-import { rollupPluginNode } from 'rollup-plugin-node';
+import rollupPluginNode from 'rollup-plugin-node';
 
 export default {
   input: 'src/index.js',
@@ -40,9 +40,9 @@ export default {
 ```
 That all!!
 
-## Meta
+Tips: put it after commonjs node
 
-[CONTRIBUTING](/.github/CONTRIBUTING.md)
+## Meta
 
 [LICENSE (MIT)](/LICENSE)
 

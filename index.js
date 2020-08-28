@@ -1,6 +1,6 @@
-import MagicString from 'magic-string';
-import { createFilter } from '@rollup/pluginutils';
-import path from 'path';
+const MagicString = require('magic-string');
+const utils = require('@rollup/pluginutils');
+const path =require('path');
 
 const nodeNativeDeps = ['tls', 'crypto', 'http', 'fs', 'path', 'events', 'url', 'net', 'zlib', 'tty', 'querystring', 'util', 'buffer', 'domain', 'stream', 'os', 'https', 'string_decoder']
 
@@ -39,15 +39,15 @@ function mapToFunctions(object) {
     }, {});
 }
 
-export default function rollupPluginNode(options = {}) {
-    const filter = createFilter(options.include, options.exclude);
+module.exports = function rollupPluginNode(options = {}) {
+    const filter = utils.createFilter(options.include, options.exclude);
     const { delimiters } = options;
 
     const replacements = {
         // 'commonjsRequire.resolve': 'require.resolve', // workaround for promise.resolve usage and commonjs plugin
     }
     const optionalRegexTemplate = `[\\w\\s=_\\$\\(]*require\\((\\'|\\")LIBRARY_NAME(\\'|\\")\\)(.)*\\n`
-        // `(.|\\s|=_)*require\\((\\'|\\")LIBRARY_NAME(\\'|\\")\\)(.)*\\n`
+    // `(.|\\s|=_)*require\\((\\'|\\")LIBRARY_NAME(\\'|\\")\\)(.)*\\n`
 
     const functionValues = mapToFunctions(getReplacements(replacements));
     const keys = Object.keys(functionValues)
