@@ -10,6 +10,9 @@
 
 🍣 A Rollup plugin which improve rollup usage with nodejs projects 
 
+This plugin declares all nodejs native deps in external and try to remove require/import for all unknown others.
+It's solve (most of the time) optional import from an external library that rollup actually don't manage very well ;). 
+
 ## Requirements
 
 This plugin requires an [LTS](https://github.com/nodejs/Release) Node version (v12.0.0+) and Rollup v1.20.0+.
@@ -41,8 +44,4 @@ export default {
 That all!!
 
 Tips: put it after commonjs node
-
-## Meta
-
-[LICENSE (MIT)](/LICENSE)
 

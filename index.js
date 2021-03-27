@@ -2,7 +2,7 @@ const MagicString = require('magic-string');
 const utils = require('@rollup/pluginutils');
 const path =require('path');
 
-const nodeNativeDeps = ['tls', 'crypto', 'http', 'fs', 'path', 'events', 'url', 'net', 'zlib', 'tty', 'querystring', 'util', 'buffer', 'domain', 'stream', 'os', 'https', 'string_decoder', 'assert']
+const nodeNativeDeps = ['tls', 'crypto', 'http', 'fs', 'path', 'events', 'url', 'net', 'zlib', 'tty', 'querystring', 'util', 'buffer', 'domain', 'stream', 'os', 'https', 'string_decoder', 'assert', 'child_process', 'cluster', 'timers']
 
 
 function escape(str) {
@@ -41,13 +41,14 @@ function mapToFunctions(object) {
 
 module.exports = function rollupPluginNode(options = {}) {
     const filter = utils.createFilter(options.include, options.exclude);
-    const { delimiters } = options;
+    const { delimiters, finalRenderES7 = true } = options;
 
     const replacements = {
         // 'commonjsRequire.resolve': 'require.resolve', // workaround for promise.resolve usage and commonjs plugin
     }
-    const optionalRegexTemplate = `[\\w\\s=_\\$\\(]*require\\((\\'|\\")LIBRARY_NAME(\\'|\\")\\)(.)*\\n`
-    // `(.|\\s|=_)*require\\((\\'|\\")LIBRARY_NAME(\\'|\\")\\)(.)*\\n`
+    const optionalES5RegexTemplate = `[\\w\\s=_\\$\\(]*require\\((\\'|\\")LIBRARY_NAME(\\'|\\")\\)(.)*\\n`
+    const optionalES7RegexTemplate = `import [\\w$0-9]* from (\\'|\\")LIBRARY_NAME(\\'|\\")(.)*\\n`
+    let optionalRegexTemplate = (finalRenderES7) ? optionalES7RegexTemplate : optionalES5RegexTemplate;
 
     const functionValues = mapToFunctions(getReplacements(replacements));
     const keys = Object.keys(functionValues)
