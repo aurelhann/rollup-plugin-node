@@ -41,7 +41,7 @@ function mapToFunctions(object) {
 
 module.exports = function rollupPluginNode(options = {}) {
     const filter = utils.createFilter(options.include, options.exclude);
-    const { delimiters, finalRenderES7 = true } = options;
+    const { delimiters, finalRenderES7 = false } = options;
 
     const replacements = {
         // 'commonjsRequire.resolve': 'require.resolve', // workaround for promise.resolve usage and commonjs plugin
