@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-node",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A plugin rollup for node uage and other little stuff that make rollup great",
   "main": "index.js",
   "scripts": {
