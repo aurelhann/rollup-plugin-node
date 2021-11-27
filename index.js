@@ -2,7 +2,7 @@ const MagicString = require('magic-string');
 const utils = require('@rollup/pluginutils');
 const path =require('path');
 
-const nodeNativeDeps = ['tls', 'crypto', 'http', 'fs', 'path', 'events', 'url', 'net', 'zlib', 'tty', 'querystring', 'util', 'buffer', 'domain', 'stream', 'os', 'https', 'string_decoder', 'assert', 'child_process', 'cluster', 'timers', 'vm']
+const nodeNativeDeps = ['tls', 'crypto', 'http', 'fs', 'path', 'events', 'url', 'net', 'zlib', 'tty', 'querystring', 'util', 'buffer', 'domain', 'stream', 'os', 'https', 'string_decoder', 'assert', 'child_process', 'cluster', 'timers', 'vm', 'worker_threads']
 
 
 function escape(str) {
