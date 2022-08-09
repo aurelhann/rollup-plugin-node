@@ -4,7 +4,6 @@
 [size-url]: https://packagephobia.now.sh/result?p=rollup-plugin-node
 
 [![npm][npm]][npm-url]
-[![size][size]][size-url]
 
 # rolup-plugin-node
 
