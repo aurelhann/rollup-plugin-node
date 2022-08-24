@@ -40,7 +40,21 @@ export default {
   plugins: [rollupPluginNode()]
 };
 ```
-That all!!
+That's all!!
 
 Tips: put it after commonjs node
+
+## Additional options
+
+```js
+{
+    additionalOptionaDeps: {
+        'somethingVeryUsefull.node': './addon',
+        'partial/path/somethingVeryUsefullWithPartialPath.node': './addon',
+    }
+}
+```
+
+* `additionalOptionaDeps` : <Object> : A map of filename and destination (relative to the output)
+
 
