@@ -1,6 +1,7 @@
 const MagicString = require('magic-string');
 const utils = require('@rollup/pluginutils');
 const path =require('path');
+const fs = require('fs');
 
 const nodeNativeDeps = ['async_hooks', 'tls', 'crypto', 'http', 'fs', 'path', 'events', 'url', 'net', 'zlib', 'tty', 'querystring', 'util', 'buffer', 'domain', 'stream', 'os', 'https', 'string_decoder', 'assert', 'child_process', 'cluster', 'timers', 'vm', 'worker_threads', 'module', 'constants']
 
@@ -41,13 +42,18 @@ function mapToFunctions(object) {
 
 module.exports = function rollupPluginNode(options = {}) {
     const filter = utils.createFilter(options.include, options.exclude);
-    const { delimiters, finalRenderES7 = false } = options;
+    const { delimiters, finalRenderES7 = false, additionalOptionaDeps = {} } = options;
+
+    if(typeof additionalOptionaDeps !== 'object')
+        throw new Error('additionalOptionaDeps optioni is not a valid object')
+
+    const additionalOptionaDepsKeys = Object.keys(additionalOptionaDeps);
 
     const replacements = {
         // 'commonjsRequire.resolve': 'require.resolve', // workaround for promise.resolve usage and commonjs plugin
     }
-    const optionalES5RegexTemplate = `[\\w\\s=_\\$\\(]*require\\((\\'|\\")LIBRARY_NAME(\\'|\\")\\)(.)*\\n`
-    const optionalES7RegexTemplate = `import [\\w$0-9]* from (\\'|\\")LIBRARY_NAME(\\'|\\")(.)*\\n`
+    const optionalES5RegexTemplate = `[\\w\\s=_\\$\\(]*require\\(((\\'|\\")(.*)LIBRARY_NAME(\\'|\\"))\\)(.)*\\n`
+    const optionalES7RegexTemplate = `import [\\w$0-9]* from (\\'|\\")((.*)LIBRARY_NAME)(\\'|\\")(.)*\\n`
     let optionalRegexTemplate = (finalRenderES7) ? optionalES7RegexTemplate : optionalES5RegexTemplate;
 
     const functionValues = mapToFunctions(getReplacements(replacements));
@@ -56,6 +62,7 @@ module.exports = function rollupPluginNode(options = {}) {
         .map(escape);
 
     const optionalDeps = [];
+    const optionalDepsInternal = [];
 
     const pattern = delimiters
         ? new RegExp(`${escape(delimiters[0])}(${keys.join('|')})${escape(delimiters[1])}`, 'g')
@@ -65,9 +72,29 @@ module.exports = function rollupPluginNode(options = {}) {
         name: 'nodejs',
 
         resolveId ( source ) {
+            // Test additional internal optional dep
+            if(additionalOptionaDepsKeys?.length !== 0){
+                let additionalSource;
+                additionalOptionaDepsKeys.forEach(partialNaming => {
+                    if(source.includes(partialNaming)){
+                        additionalSource = partialNaming
+                    }
+                });
+                if(additionalSource){
+                    //console.log(`Library call detect as optional: ${source}`)
+                    optionalDepsInternal.push({
+                        source: source.split('?')[0],
+                        dep: additionalSource
+                    });
+                    return {id: source, external: true};
+                }
+            }
+
             if (!source.includes(path.sep) && nodeNativeDeps.includes(source.split('?')[0])){
+                // You enter here for native nodejs native lib -> we set external lib
                 return {id: source, external: true};
             } else if (!source.includes(path.sep) && !nodeNativeDeps.includes(source.split('?')[0])){
+                // We enter here for optional or peer dep -> set to external and try to bundle as optional dep (try catch around)
                 optionalDeps.push(source.split('?')[0]);
                 return {id: source, external: true};
             }
@@ -87,14 +114,44 @@ module.exports = function rollupPluginNode(options = {}) {
             return executeReplacement(code, id);
         },
 
-        generateBundle(options, bundleInfo){
+        generateBundle(assetInfos, bundleInfo){
             // remove same values
             const finalOptionalDeps = Array.from(new Set(optionalDeps));
 
             for(let [key, value] of Object.entries(bundleInfo)) {
+                // for classic option dep
                 finalOptionalDeps.forEach( optionalLibrary => {
                     console.log(getRegexFromLibraryName(optionalLibrary))
-                    value.code = value.code.replace(getRegexFromLibraryName(optionalLibrary), '')
+                    value.code = value.code.replaceAll(getRegexFromLibraryName(optionalLibrary), '')
+                })
+
+                // for specific internal dep
+                optionalDepsInternal.forEach( optionalInternalLib => {
+                    const intermediateFinalPath = optionalInternalLib.source.split(path.sep);
+                    const finalPath = path.join(additionalOptionaDeps[optionalInternalLib.dep] || './', intermediateFinalPath[intermediateFinalPath.length - 1])
+
+                    let myExec;
+                    const regexOptionalInternal = getRegexFromLibraryName(optionalInternalLib.dep)
+                    while ((optsDep = regexOptionalInternal.exec(value.code)) !== null) {
+                        value.code = value.code.replaceAll(optsDep[1], `'./${finalPath}'`)
+                    }
+
+                    const dest = path.resolve(path.dirname(assetInfos.file), finalPath)
+                    const from = optionalInternalLib.source
+                    if(fs.existsSync(from)){
+                        try {
+                            if(!fs.existsSync(path.dirname(dest))){
+                                fs.mkdirSync(path.dirname(dest))
+                            }
+
+                            fs.copyFileSync(from, dest)
+                            console.log(`The copy of ${from} succeed`)
+                        } catch(e){
+                            console.log(`The copy of ${from} failed`)
+                        }
+                    } else {
+                        console.log(`Warn: Missing optional internal dep source: ${from}`)
+                    }
                 })
             }
         }
@@ -102,7 +159,7 @@ module.exports = function rollupPluginNode(options = {}) {
     };
 
     function getRegexFromLibraryName(libraryName){
-        return new RegExp(optionalRegexTemplate.replace('LIBRARY_NAME', libraryName));
+        return new RegExp(optionalRegexTemplate.replace('LIBRARY_NAME', libraryName), 'g');
     }
 
     function executeReplacementChunk(code, id){
@@ -152,7 +209,6 @@ module.exports = function rollupPluginNode(options = {}) {
             const end = start + match[0].length;
 
             const finalReplacment = specificPattern ? replacement : String(functionValues[match[1]](id));
-            if(match[1].includes('bufferutil')) console.log(finalReplacment)
             magicString.overwrite(start, end, finalReplacment);
         }
         return result;
