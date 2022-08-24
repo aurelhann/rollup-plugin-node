@@ -42,12 +42,12 @@ function mapToFunctions(object) {
 
 module.exports = function rollupPluginNode(options = {}) {
     const filter = utils.createFilter(options.include, options.exclude);
-    const { delimiters, finalRenderES7 = false, additionalOptionaDeps = {} } = options;
+    const { delimiters, finalRenderES7 = false, additionalOptionalDeps = {} } = options;
 
-    if(typeof additionalOptionaDeps !== 'object')
+    if(typeof additionalOptionalDeps !== 'object')
         throw new Error('additionalOptionaDeps optioni is not a valid object')
 
-    const additionalOptionaDepsKeys = Object.keys(additionalOptionaDeps);
+    const additionalOptionaDepsKeys = Object.keys(additionalOptionalDeps);
 
     const replacements = {
         // 'commonjsRequire.resolve': 'require.resolve', // workaround for promise.resolve usage and commonjs plugin
@@ -128,7 +128,7 @@ module.exports = function rollupPluginNode(options = {}) {
                 // for specific internal dep
                 optionalDepsInternal.forEach( optionalInternalLib => {
                     const intermediateFinalPath = optionalInternalLib.source.split(path.sep);
-                    const finalPath = path.join(additionalOptionaDeps[optionalInternalLib.dep] || './', intermediateFinalPath[intermediateFinalPath.length - 1])
+                    const finalPath = path.join(additionalOptionalDeps[optionalInternalLib.dep] || './', intermediateFinalPath[intermediateFinalPath.length - 1])
 
                     let myExec;
                     const regexOptionalInternal = getRegexFromLibraryName(optionalInternalLib.dep)

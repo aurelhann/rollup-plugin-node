@@ -48,7 +48,7 @@ Tips: put it after commonjs node
 
 ```js
 {
-    additionalOptionaDeps: {
+    additionalOptionalDeps: {
         'somethingVeryUsefull.node': './addon',
         'partial/path/somethingVeryUsefullWithPartialPath.node': './addon',
     }
